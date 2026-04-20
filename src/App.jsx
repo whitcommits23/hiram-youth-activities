@@ -27,18 +27,20 @@ const EVENTS = [
 ];
 
 const GROUP_STYLES = {
-  YM:       { accent: "#1a2744", light: "#eef2f8", label: "Young Men",   pill: "#1a2744", pillText: "#fff" },
-  YW:       { accent: "#7c2d6e", light: "#f8eef5", label: "Young Women", pill: "#7c2d6e", pillText: "#fff" },
-  Combined: { accent: "#1a5c3a", light: "#eef5f0", label: "Combined",    pill: "#1a5c3a", pillText: "#fff" },
-  Stake:    { accent: "#7a1f2e", light: "#f8eef0", label: "Stake",       pill: "#7a1f2e", pillText: "#fff" },
+  YM:       { accent: "#5d8fe8", light: "rgba(93,143,232,0.11)",  label: "Young Men"   },
+  YW:       { accent: "#d07ec5", light: "rgba(208,126,197,0.11)", label: "Young Women" },
+  Combined: { accent: "#c9a84c", light: "rgba(201,168,76,0.11)",  label: "Combined"    },
+  Stake:    { accent: "#e07b6a", light: "rgba(224,123,106,0.11)", label: "Stake"       },
 };
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + "T12:00:00");
   return {
     month: MONTHS[d.getMonth()],
+    monthFull: MONTHS_FULL[d.getMonth()],
     day: d.getDate(),
     weekday: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()],
   };
@@ -57,7 +59,7 @@ function getCountdown(dateStr) {
   const diff = Math.floor((event - today) / (1000 * 60 * 60 * 24));
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
-  return `${diff} days away`;
+  return `${diff} days`;
 }
 
 function parseTime(timeStr) {
@@ -149,104 +151,399 @@ export default function App() {
   const nextEvent = filtered[0];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f1eb" }}>
+    <div style={{ minHeight: "100vh", background: "#0c1019" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Sora:wght@300;400;500;600&display=swap');
 
-        .header { background: #1a2744; padding: 40px 24px 32px; text-align: center; position: relative; overflow: hidden; }
-        .header::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%); pointer-events: none; }
-        .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #d4af37; margin-bottom: 10px; }
-        .h-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 6px; }
-        .h-sub { font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.5); font-size: 14px; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .next-banner { margin: 20px 16px 0; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
-        .next-pill { color: #fff; font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; background: rgba(0,0,0,0.18); }
-        .next-countdown { color: rgba(255,255,255,0.85); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; white-space: nowrap; background: rgba(255,255,255,0.15); padding: 3px 9px; border-radius: 20px; }
-        .next-body { flex: 1; min-width: 0; }
-        .next-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .next-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; margin-top: 2px; opacity: 0.7; }
+        :root {
+          --bg:           #0c1019;
+          --surface:      #131b28;
+          --surface-2:    #192235;
+          --border:       rgba(255,255,255,0.07);
+          --border-soft:  rgba(255,255,255,0.04);
+          --gold:         #c9a84c;
+          --gold-dim:     rgba(201,168,76,0.3);
+          --cream:        #f0e6d2;
+          --cream-dim:    rgba(240,230,210,0.55);
+          --cream-faint:  rgba(240,230,210,0.22);
+        }
 
-        .filter-row { padding: 18px 16px 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+        body {
+          background: var(--bg);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Grain texture */
+        body::after {
+          content: '';
+          position: fixed; inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+          opacity: 0.032;
+          pointer-events: none;
+          z-index: 9999;
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+          padding: 52px 24px 44px;
+          position: relative;
+          overflow: hidden;
+        }
+        .header::before {
+          content: '';
+          position: absolute; inset: 0;
+          background:
+            radial-gradient(ellipse 65% 50% at 50% -5%, rgba(201,168,76,0.08) 0%, transparent 70%),
+            radial-gradient(ellipse 35% 25% at 10% 90%, rgba(93,143,232,0.05) 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .hdr-rule {
+          display: flex; align-items: center; gap: 12px;
+          margin-bottom: 18px;
+          position: relative; z-index: 1;
+        }
+        .hdr-rule-line { height: 1px; background: var(--gold-dim); width: 28px; flex-shrink: 0; }
+        .hdr-eyebrow {
+          font-family: 'Sora', sans-serif;
+          font-size: 9px; font-weight: 600;
+          letter-spacing: 4px; text-transform: uppercase;
+          color: var(--gold);
+        }
+        .hdr-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 66px; font-weight: 700;
+          color: var(--cream); line-height: 0.87;
+          letter-spacing: -2px;
+          margin-bottom: 24px;
+          position: relative; z-index: 1;
+        }
+        .hdr-title em {
+          font-style: italic; font-weight: 400;
+          color: var(--cream-dim);
+        }
+        .hdr-bottom {
+          display: flex; align-items: center; gap: 14px;
+          position: relative; z-index: 1;
+        }
+        .hdr-year {
+          font-family: 'Sora', sans-serif;
+          font-size: 10px; font-weight: 400;
+          letter-spacing: 3px; color: var(--cream-faint);
+          white-space: nowrap;
+        }
+        .hdr-bottom-line { flex: 1; height: 1px; background: var(--border); }
+
+        /* ─── FEATURE (Next Up) ─── */
+        .feature {
+          margin: 20px 16px 0;
+          border-radius: 14px;
+          padding: 26px 22px;
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.07);
+          animation: fadeUp 0.5s 0.08s ease both;
+        }
+        .feature::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 55%);
+          pointer-events: none;
+        }
+        .feature-ghost {
+          position: absolute;
+          right: -6px; top: 50%; transform: translateY(-50%);
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 148px; font-weight: 700;
+          line-height: 1; opacity: 0.08;
+          color: #fff;
+          pointer-events: none; user-select: none;
+          letter-spacing: -6px;
+        }
+        .feature-top {
+          display: flex; align-items: center; gap: 10px;
+          margin-bottom: 14px;
+        }
+        .feature-label {
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 3px; text-transform: uppercase;
+          color: rgba(255,255,255,0.35);
+        }
+        .feature-countdown {
+          font-family: 'Sora', sans-serif;
+          font-size: 9px; font-weight: 600;
+          letter-spacing: 1.5px; text-transform: uppercase;
+          color: rgba(255,255,255,0.85);
+          background: rgba(255,255,255,0.1);
+          padding: 3px 10px; border-radius: 20px;
+        }
+        .feature-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 28px; font-weight: 700;
+          color: #fff; line-height: 1.15;
+          margin-bottom: 8px;
+        }
+        .feature-meta {
+          font-family: 'Sora', sans-serif;
+          font-size: 11px; font-weight: 400;
+          color: rgba(255,255,255,0.48);
+        }
+
+        /* ─── FILTERS ─── */
+        .filter-row {
+          padding: 20px 16px 0;
+          display: flex; gap: 6px;
+          overflow-x: auto; scrollbar-width: none;
+          animation: fadeUp 0.4s 0.12s ease both;
+        }
         .filter-row::-webkit-scrollbar { display: none; }
-        .fbtn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 18px; border-radius: 20px; border: 1.5px solid #c5bba8; background: transparent; color: #5a5248; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-        .fbtn.ym-on    { background: #1a2744; border-color: #1a2744; color: #fff; }
-        .fbtn.yw-on    { background: #7c2d6e; border-color: #7c2d6e; color: #fff; }
-        .fbtn.com-on   { background: #1a5c3a; border-color: #1a5c3a; color: #fff; }
-        .fbtn.all-on   { background: #3a3530; border-color: #3a3530; color: #fff; }
-        .fbtn.stake-on { background: #7a1f2e; border-color: #7a1f2e; color: #fff; }
+        .fbtn {
+          font-family: 'Sora', sans-serif;
+          font-size: 11px; font-weight: 500;
+          padding: 6px 15px; border-radius: 6px;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--cream-faint); cursor: pointer;
+          white-space: nowrap; transition: all 0.14s;
+          letter-spacing: 0.3px;
+        }
+        .fbtn:hover { color: var(--cream-dim); border-color: rgba(255,255,255,0.14); }
+        .fbtn.all-on   { background: var(--surface-2); border-color: rgba(255,255,255,0.15); color: var(--cream); }
+        .fbtn.ym-on    { border-color: #5d8fe8; color: #5d8fe8; background: rgba(93,143,232,0.09); }
+        .fbtn.yw-on    { border-color: #d07ec5; color: #d07ec5; background: rgba(208,126,197,0.09); }
+        .fbtn.stake-on { border-color: #e07b6a; color: #e07b6a; background: rgba(224,123,106,0.09); }
 
-        .list { padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+        /* ─── MONTH SECTIONS ─── */
+        .month-section { padding: 20px 16px 0; }
+        .month-header {
+          display: flex; align-items: center; gap: 12px;
+          margin-bottom: 10px;
+        }
+        .month-label {
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 3.5px; text-transform: uppercase;
+          color: var(--gold); white-space: nowrap;
+        }
+        .month-rule { flex: 1; height: 1px; background: var(--gold-dim); }
 
-        .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07); cursor: pointer; transition: box-shadow 0.2s, transform 0.15s; border: 1.5px solid transparent; }
-        .card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.11); transform: translateY(-1px); }
-        .card.open { border-width: 1.5px; }
+        /* ─── CARDS ─── */
+        .cards-stack { display: flex; flex-direction: column; gap: 7px; }
 
-        .card-stripe { height: 4px; width: 100%; }
+        .card {
+          background: var(--surface);
+          border-radius: 11px;
+          border: 1px solid var(--border);
+          overflow: hidden;
+          cursor: pointer;
+          display: flex;
+          transition: border-color 0.18s, box-shadow 0.18s, transform 0.14s;
+          animation: fadeUp 0.4s ease both;
+        }
+        .card:hover {
+          transform: translateY(-1px);
+          border-color: rgba(255,255,255,0.13);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .card.open { border-color: rgba(255,255,255,0.14); }
+        .card.past { opacity: 0.38; }
+        .card.past:hover { opacity: 0.65; transform: none; box-shadow: none; }
 
-        .card-top { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+        .card-bar { width: 3px; flex-shrink: 0; }
+        .card-inner { flex: 1; min-width: 0; }
 
-        .datebox { min-width: 50px; text-align: center; padding: 8px 5px; background: #f4f1eb; border-radius: 10px; flex-shrink: 0; }
-        .dm { font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-        .dd { font-family: 'Playfair Display', serif; font-size: 25px; font-weight: 700; color: #1a2744; line-height: 1; }
-        .dw { font-family: 'DM Sans', sans-serif; font-size: 10px; color: #9e9489; margin-top: 2px; }
+        .card-top {
+          display: flex; align-items: center;
+          gap: 13px; padding: 14px 13px 14px 14px;
+          position: relative;
+        }
+
+        /* Ghost day number watermark */
+        .card-ghost {
+          position: absolute;
+          right: 36px; top: 50%; transform: translateY(-50%);
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 80px; font-weight: 700;
+          line-height: 1; opacity: 0.055;
+          color: #fff;
+          pointer-events: none; user-select: none;
+          letter-spacing: -3px;
+        }
+
+        .datebox {
+          text-align: center; min-width: 38px;
+          flex-shrink: 0;
+        }
+        .dm {
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 1.5px; text-transform: uppercase;
+          color: var(--cream-faint); margin-bottom: 1px;
+        }
+        .dd {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 38px; font-weight: 700;
+          line-height: 0.85; color: var(--cream);
+        }
+        .dd-range {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 18px; font-weight: 700;
+          line-height: 1.15; color: var(--cream);
+        }
+        .dw {
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; color: var(--cream-faint);
+          margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .vdivider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
 
         .cbody { flex: 1; min-width: 0; }
-        .ctitle { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: #1a2744; line-height: 1.3; margin-bottom: 4px; }
-        .cmeta { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; flex-wrap: wrap; }
-        .cmeta-time { font-weight: 600; color: #1a2744; }
-        .cmeta-sep { color: #d0c8bc; }
-        .cmeta-loc { color: #7a7068; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-        .tbd { display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; color: #aaa098; background: #f0ece4; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
-        .group-pill { display: inline-flex; align-items: center; font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+        .ctitle {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 16px; font-weight: 600;
+          color: var(--cream); line-height: 1.25;
+          margin-bottom: 4px;
+        }
+        .cmeta {
+          display: flex; align-items: center; gap: 5px;
+          font-family: 'Sora', sans-serif; font-size: 11px;
+          color: var(--cream-dim); flex-wrap: wrap;
+          margin-bottom: 6px;
+        }
+        .cmeta-time { font-weight: 500; }
+        .cmeta-sep { color: var(--cream-faint); }
+        .cmeta-loc {
+          color: var(--cream-dim);
+          white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; max-width: 140px;
+        }
+        .tbd {
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 1px; text-transform: uppercase;
+          color: var(--cream-faint);
+        }
+        .group-pill {
+          display: inline-flex; align-items: center;
+          font-family: 'Sora', sans-serif;
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 1.2px; text-transform: uppercase;
+          padding: 2px 8px; border-radius: 4px;
+        }
 
-        .chev { font-size: 16px; color: #c5bba8; transition: transform 0.2s; flex-shrink: 0; margin-left: 2px; }
+        .chev {
+          font-size: 13px; color: var(--cream-faint);
+          flex-shrink: 0; margin-left: 2px;
+          transition: transform 0.2s; line-height: 1;
+        }
         .chev.up { transform: rotate(180deg); }
 
-        .card-detail { border-top: 1px solid #f0ece4; padding: 14px 16px 16px; background: #fdfcfa; }
-        .drow { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #5a5248; }
+        /* ─── DETAIL PANEL ─── */
+        .card-detail {
+          border-top: 1px solid var(--border-soft);
+          padding: 13px 13px 15px 14px;
+          background: var(--surface-2);
+        }
+        .drow {
+          display: flex; gap: 12px; align-items: flex-start;
+          margin-bottom: 9px;
+          font-family: 'Sora', sans-serif; font-size: 12px;
+          color: var(--cream-dim); line-height: 1.5;
+        }
         .drow:last-child { margin-bottom: 0; }
-        .dlabel { font-weight: 600; color: #1a2744; min-width: 78px; flex-shrink: 0; }
-        .dlink { color: #1a6baf; text-decoration: none; }
+        .dlabel {
+          font-size: 8px; font-weight: 600;
+          letter-spacing: 1.5px; text-transform: uppercase;
+          color: var(--gold); min-width: 72px; flex-shrink: 0; padding-top: 3px;
+        }
+        .dlink { color: #6ba3e8; text-decoration: none; }
         .dlink:hover { text-decoration: underline; }
 
-        .cal-btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; margin-top: 14px; padding: 11px 16px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; transition: opacity 0.15s; }
-        .cal-btn:hover { opacity: 0.88; }
+        .cal-btn {
+          display: flex; align-items: center; justify-content: center;
+          gap: 7px; width: 100%; margin-top: 13px; padding: 10px 16px;
+          color: #fff;
+          font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 600;
+          letter-spacing: 0.5px;
+          border: none; border-radius: 8px; cursor: pointer;
+          text-decoration: none; transition: opacity 0.14s, transform 0.1s;
+        }
+        .cal-btn:hover { opacity: 0.84; transform: translateY(-1px); }
 
-        .month-header { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #9e9489; padding: 8px 2px 6px; border-bottom: 1px solid #e8e2d8; margin-bottom: 2px; }
-        .past-toggle { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 16px; margin: 8px 0 0; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #9e9489; letter-spacing: 0.5px; }
-        .past-toggle:hover { color: #5a5248; }
-        .past-toggle-line { flex: 1; height: 1px; background: #e8e2d8; }
-        .past-toggle-chev { font-size: 14px; transition: transform 0.2s; }
+        /* ─── PAST EVENTS ─── */
+        .past-toggle {
+          display: flex; align-items: center; gap: 10px; width: 100%;
+          padding: 16px 0; background: none; border: none; cursor: pointer;
+          font-family: 'Sora', sans-serif; font-size: 9px; font-weight: 500;
+          letter-spacing: 2.5px; text-transform: uppercase;
+          color: var(--cream-faint); transition: color 0.15s;
+        }
+        .past-toggle:hover { color: var(--cream-dim); }
+        .past-toggle-line { flex: 1; height: 1px; background: var(--border); }
+        .past-toggle-chev { font-size: 11px; transition: transform 0.2s; }
         .past-toggle-chev.up { transform: rotate(180deg); }
-        .card.past { opacity: 0.6; }
-        .card.past:hover { opacity: 0.85; }
-        .empty { text-align: center; padding: 60px 24px; color: #b0a898; font-family: 'DM Sans', sans-serif; font-size: 14px; }
-        .footer { text-align: center; padding: 24px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #c5bba8; }
+
+        .empty {
+          text-align: center; padding: 52px 24px;
+          font-family: 'Sora', sans-serif; font-size: 13px;
+          color: var(--cream-faint);
+        }
+
+        .footer {
+          text-align: center; padding: 36px 24px 48px;
+          font-family: 'Sora', sans-serif;
+          font-size: 9px; font-weight: 500;
+          letter-spacing: 2.5px; text-transform: uppercase;
+          color: var(--cream-faint);
+          border-top: 1px solid var(--border); margin-top: 28px;
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
 
       {/* Header */}
       <div className="header">
-        <div className="eyebrow">Hiram Ward</div>
-        <div className="h-title">Youth<br/>Activities</div>
-        <div className="h-sub">2026 Activity Calendar</div>
+        <div className="hdr-rule">
+          <div className="hdr-rule-line" />
+          <div className="hdr-eyebrow">Hiram Ward</div>
+        </div>
+        <div className="hdr-title">Youth<br/><em>Activities</em></div>
+        <div className="hdr-bottom">
+          <div className="hdr-year">2026 Calendar</div>
+          <div className="hdr-bottom-line" />
+        </div>
       </div>
 
-      {/* Next Up Banner */}
+      {/* Next Up */}
       {nextEvent && (() => {
         const d = formatDate(nextEvent.date);
         const gs = GROUP_STYLES[nextEvent.group];
         return (
-          <div className="next-banner" style={{ background: `linear-gradient(135deg, ${gs.accent}ee, ${gs.accent}bb)` }}>
-            <span className="next-pill">Next Up</span>
-            <span className="next-countdown">{getCountdown(nextEvent.date)}</span>
-            <div className="next-body">
-              <div className="next-title" style={{ color: "#fff" }}>{nextEvent.title}</div>
-              <div className="next-sub" style={{ color: "#fff" }}>
-                {d.weekday}, {d.month} {d.day}
-                {nextEvent.time !== "TBD" && ` · ${nextEvent.time}`}
-                {` · ${gs.label}`}
-              </div>
+          <div
+            className="feature"
+            style={{
+              background: `linear-gradient(135deg, ${gs.accent}20 0%, ${gs.accent}0c 55%, rgba(255,255,255,0.015) 100%)`,
+              borderColor: `${gs.accent}28`,
+            }}
+          >
+            <div className="feature-ghost">{d.day}</div>
+            <div className="feature-top">
+              <span className="feature-label">Next Up</span>
+              <span className="feature-countdown">{getCountdown(nextEvent.date)}</span>
+            </div>
+            <div className="feature-title">{nextEvent.title}</div>
+            <div className="feature-meta">
+              {d.weekday}, {d.month} {d.day}
+              {nextEvent.time !== "TBD" && ` · ${nextEvent.time}`}
+              {` · ${gs.label}`}
             </div>
           </div>
         );
@@ -270,109 +567,117 @@ export default function App() {
       </div>
 
       {/* Event List */}
-      <div className="list">
+      <div>
         {filtered.length === 0 ? (
           <div className="empty">No upcoming events in this category.</div>
         ) : (() => {
           const grouped = filtered.reduce((acc, ev) => {
             const d = new Date(ev.date + "T12:00:00");
-            const key = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+            const key = `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
             (acc[key] = acc[key] || []).push(ev);
             return acc;
           }, {});
 
           return Object.entries(grouped).map(([month, events]) => (
-            <div key={month}>
-              <div className="month-header">{month}</div>
-              {events.map((ev) => {
-                const i = filtered.indexOf(ev);
-                const d = formatDate(ev.date);
-                const gs = GROUP_STYLES[ev.group];
-                const isOpen = expandedId === i;
-                const isTBDTime = ev.time === "TBD";
-                const isTBDLoc = !ev.location || ev.location === "TBD";
-                const calUrl = buildCalendarUrl(ev);
-
-                return (
-            <div
-              key={i}
-              className={`card${isOpen ? " open" : ""}`}
-              style={isOpen ? { borderColor: gs.accent } : {}}
-              onClick={() => setExpandedId(isOpen ? null : i)}
-            >
-              <div className="card-stripe" style={{ background: gs.accent }} />
-
-              <div className="card-top">
-                <div className="datebox">
-                  <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
-                  {ev.endDate
-                    ? <div className="dd" style={{ fontSize: 14, lineHeight: "1.3" }}>{d.day}–{formatDate(ev.endDate).day}</div>
-                    : <div className="dd">{d.day}</div>
-                  }
-                  <div className="dw">{ev.endDate ? formatDate(ev.endDate).month !== d.month ? `${d.weekday}–${formatDate(ev.endDate).weekday}` : d.weekday : d.weekday}</div>
-                </div>
-
-                <div className="cbody">
-                  <div className="ctitle">{ev.title}</div>
-                  <div className="cmeta">
-                    <span className="cmeta-time">{isTBDTime ? <span className="tbd">TIME TBD</span> : ev.time}</span>
-                    <span className="cmeta-sep">·</span>
-                    <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">LOCATION TBD</span> : ev.location.split(",")[0]}</span>
-                  </div>
-                  <span
-                    className="group-pill"
-                    style={{ background: gs.light, color: gs.accent }}
-                  >
-                    {gs.label}
-                  </span>
-                </div>
-
-                <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
+            <div key={month} className="month-section">
+              <div className="month-header">
+                <span className="month-label">{month}</span>
+                <span className="month-rule" />
               </div>
+              <div className="cards-stack">
+                {events.map((ev, idx) => {
+                  const i = filtered.indexOf(ev);
+                  const d = formatDate(ev.date);
+                  const gs = GROUP_STYLES[ev.group];
+                  const isOpen = expandedId === i;
+                  const isTBDTime = ev.time === "TBD";
+                  const isTBDLoc = !ev.location || ev.location === "TBD";
+                  const calUrl = buildCalendarUrl(ev);
 
-              {isOpen && (
-                <div className="card-detail">
-                  {ev.details && (
-                    <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>
-                  )}
-                  {ev.endDate && (
-                    <div className="drow">
-                      <span className="dlabel">Dates</span>
-                      <span>{formatDateRange(ev.date, ev.endDate)}</span>
+                  return (
+                    <div
+                      key={i}
+                      className={`card${isOpen ? " open" : ""}`}
+                      style={{
+                        boxShadow: isOpen ? `0 0 0 1px ${gs.accent}30, 0 8px 28px rgba(0,0,0,0.35)` : undefined,
+                        animationDelay: `${idx * 55}ms`,
+                      }}
+                      onClick={() => setExpandedId(isOpen ? null : i)}
+                    >
+                      <div className="card-bar" style={{ background: gs.accent }} />
+                      <div className="card-inner">
+                        <div className="card-top">
+                          <div className="card-ghost">{d.day}</div>
+                          <div className="datebox">
+                            <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
+                            {ev.endDate
+                              ? <div className="dd-range">{d.day}–{formatDate(ev.endDate).day}</div>
+                              : <div className="dd">{d.day}</div>
+                            }
+                            <div className="dw">{d.weekday}</div>
+                          </div>
+                          <div className="vdivider" />
+                          <div className="cbody">
+                            <div className="ctitle">{ev.title}</div>
+                            <div className="cmeta">
+                              <span className="cmeta-time" style={{ color: isTBDTime ? undefined : gs.accent }}>
+                                {isTBDTime ? <span className="tbd">Time TBD</span> : ev.time}
+                              </span>
+                              <span className="cmeta-sep">·</span>
+                              <span className="cmeta-loc">
+                                {isTBDLoc ? <span className="tbd">Loc TBD</span> : ev.location.split(",")[0]}
+                              </span>
+                            </div>
+                            <span className="group-pill" style={{ background: gs.light, color: gs.accent }}>
+                              {gs.label}
+                            </span>
+                          </div>
+                          <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
+                        </div>
+
+                        {isOpen && (
+                          <div className="card-detail">
+                            {ev.details && (
+                              <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>
+                            )}
+                            {ev.endDate && (
+                              <div className="drow">
+                                <span className="dlabel">Dates</span>
+                                <span>{formatDateRange(ev.date, ev.endDate)}</span>
+                              </div>
+                            )}
+                            <div className="drow">
+                              <span className="dlabel">Time</span>
+                              {isTBDTime
+                                ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span>
+                                : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>
+                              }
+                            </div>
+                            <div className="drow">
+                              <span className="dlabel">Location</span>
+                              {isTBDLoc
+                                ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span>
+                                : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>
+                              }
+                            </div>
+                            {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
+                            {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
+                            <a
+                              className="cal-btn"
+                              href={calUrl}
+                              target="_blank" rel="noopener noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              style={{ background: gs.accent }}
+                            >
+                              📅 Add to Calendar
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="drow">
-                    <span className="dlabel">Time</span>
-                    {isTBDTime
-                      ? <span style={{ color: "#b0a898", fontStyle: "italic" }}>To be announced</span>
-                      : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>
-                    }
-                  </div>
-                  <div className="drow">
-                    <span className="dlabel">Location</span>
-                    {isTBDLoc
-                      ? <span style={{ color: "#b0a898", fontStyle: "italic" }}>To be announced</span>
-                      : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>
-                    }
-                  </div>
-                  {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
-                  {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
-
-                  <a
-                    className="cal-btn"
-                    href={calUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{ background: gs.accent }}
-                  >
-                    📅 Add to Calendar
-                  </a>
-                </div>
-              )}
-            </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           ));
         })()}
@@ -380,7 +685,7 @@ export default function App() {
 
       {/* Past Events */}
       {past.length > 0 && (
-        <div style={{ padding: "0 16px" }}>
+        <div style={{ padding: "4px 16px 0" }}>
           <button className="past-toggle" onClick={() => setPastOpen(o => !o)}>
             <span className="past-toggle-line" />
             <span>Earlier this year ({past.length})</span>
@@ -388,7 +693,7 @@ export default function App() {
             <span className="past-toggle-line" />
           </button>
           {pastOpen && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+            <div className="cards-stack" style={{ marginTop: 4, marginBottom: 8 }}>
               {past.map((ev, i) => {
                 const pid = `past-${i}`;
                 const d = formatDate(ev.date);
@@ -400,42 +705,46 @@ export default function App() {
                   <div
                     key={pid}
                     className={`card past${isOpen ? " open" : ""}`}
-                    style={isOpen ? { borderColor: gs.accent } : {}}
+                    style={{ animationDelay: `${i * 40}ms` }}
                     onClick={() => setExpandedId(isOpen ? null : pid)}
                   >
-                    <div className="card-stripe" style={{ background: gs.accent }} />
-                    <div className="card-top">
-                      <div className="datebox">
-                        <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
-                        <div className="dd">{d.day}</div>
-                        <div className="dw">{d.weekday}</div>
-                      </div>
-                      <div className="cbody">
-                        <div className="ctitle">{ev.title}</div>
-                        <div className="cmeta">
-                          <span className="cmeta-time">{isTBDTime ? <span className="tbd">TIME TBD</span> : ev.time}</span>
-                          <span className="cmeta-sep">·</span>
-                          <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">LOCATION TBD</span> : ev.location.split(",")[0]}</span>
+                    <div className="card-bar" style={{ background: gs.accent }} />
+                    <div className="card-inner">
+                      <div className="card-top">
+                        <div className="card-ghost">{d.day}</div>
+                        <div className="datebox">
+                          <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
+                          <div className="dd">{d.day}</div>
+                          <div className="dw">{d.weekday}</div>
                         </div>
-                        <span className="group-pill" style={{ background: gs.light, color: gs.accent }}>{gs.label}</span>
+                        <div className="vdivider" />
+                        <div className="cbody">
+                          <div className="ctitle">{ev.title}</div>
+                          <div className="cmeta">
+                            <span className="cmeta-time">{isTBDTime ? <span className="tbd">Time TBD</span> : ev.time}</span>
+                            <span className="cmeta-sep">·</span>
+                            <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">Loc TBD</span> : ev.location.split(",")[0]}</span>
+                          </div>
+                          <span className="group-pill" style={{ background: gs.light, color: gs.accent }}>{gs.label}</span>
+                        </div>
+                        <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
                       </div>
-                      <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
+                      {isOpen && (
+                        <div className="card-detail">
+                          {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
+                          <div className="drow">
+                            <span className="dlabel">Time</span>
+                            {isTBDTime ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}
+                          </div>
+                          <div className="drow">
+                            <span className="dlabel">Location</span>
+                            {isTBDLoc ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}
+                          </div>
+                          {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
+                          {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
+                        </div>
+                      )}
                     </div>
-                    {isOpen && (
-                      <div className="card-detail">
-                        {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
-                        <div className="drow">
-                          <span className="dlabel">Time</span>
-                          {isTBDTime ? <span style={{ color: "#b0a898", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}
-                        </div>
-                        <div className="drow">
-                          <span className="dlabel">Location</span>
-                          {isTBDLoc ? <span style={{ color: "#b0a898", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}
-                        </div>
-                        {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
-                        {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -444,7 +753,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="footer">Hiram Ward Young Men & Young Women · Updated April 2026</div>
+      <div className="footer">Hiram Ward Young Men &amp; Young Women · 2026</div>
     </div>
   );
 }
