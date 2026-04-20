@@ -15,6 +15,12 @@ function splitCSVLine(line) {
   return cols;
 }
 
+function getMapsUrl(location) {
+  const isApple = /iPad|iPhone|iPod|Mac/.test(navigator.userAgent) && !window.MSStream;
+  const q = encodeURIComponent(location);
+  return isApple ? `https://maps.apple.com/?q=${q}` : `https://maps.google.com/?q=${q}`;
+}
+
 function normalizeTime(t) {
   if (!t) return "TBD";
   return t.replace(/^(\d+:\d+):\d+(\s*[AP]M)$/i, "$1$2").trim() || "TBD";
@@ -641,10 +647,27 @@ export default function App() {
                               </div>
                               <div className="drow">
                                 <span className="dlabel">Location</span>
-                                {isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}
+                                {isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.location}</span>}
                               </div>
+                              {!isTBDLoc && (
+                                <>
+                                  <iframe
+                                    title="map"
+                                    width="100%"
+                                    height="150"
+                                    style={{ border: 0, borderRadius: 8, marginTop: 4, marginBottom: 4 }}
+                                    loading="lazy"
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(ev.location)}&output=embed`}
+                                  />
+                                </>
+                              )}
                               {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
                               {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
+                              {!isTBDLoc && (
+                                <a className="cal-btn" href={getMapsUrl(ev.location)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ background: gs.accent }}>
+                                  📍 Get Directions
+                                </a>
+                              )}
                               <a className="cal-btn" href={buildCalendarUrl(ev)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ background: gs.accent }}>
                                 📅 Add to Calendar
                               </a>
@@ -703,7 +726,22 @@ export default function App() {
                           <div className="card-detail">
                             {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
                             <div className="drow"><span className="dlabel">Time</span>{isTBDTime ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}</div>
-                            <div className="drow"><span className="dlabel">Location</span>{isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}</div>
+                            <div className="drow"><span className="dlabel">Location</span>{isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.location}</span>}</div>
+                            {!isTBDLoc && (
+                              <>
+                                <iframe
+                                  title="map"
+                                  width="100%"
+                                  height="150"
+                                  style={{ border: 0, borderRadius: 8, marginTop: 4, marginBottom: 4 }}
+                                  loading="lazy"
+                                  src={`https://maps.google.com/maps?q=${encodeURIComponent(ev.location)}&output=embed`}
+                                />
+                                <a className="cal-btn" href={getMapsUrl(ev.location)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ background: gs.accent }}>
+                                  📍 Get Directions
+                                </a>
+                              </>
+                            )}
                             {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
                             {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
                           </div>
