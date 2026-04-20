@@ -545,7 +545,7 @@ export default function App() {
           const gs = GROUP_STYLES[nextEvent.group];
           return (
             <div className="next-wrap">
-              <div className="next-card">
+              <div className="next-card" style={{ background: gs.accent }}>
                 <span className="next-label">Next Up</span>
                 <div className="next-meta">
                   {d.weekday} · {d.month} {d.day}
