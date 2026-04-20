@@ -1,30 +1,75 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 
-const CHURCH = "Hiram Ward Building, Hiram, OH";
+const YM_CSV = "https://docs.google.com/spreadsheets/d/1fE1op5KG2FzQydmZ6OmzavV2-e8fbqIeSqBA_hx4SS4/export?format=csv";
+const YW_CSV = "https://docs.google.com/spreadsheets/d/1WRefRcXPzkozhdFE98lwU094GvtCroCAY5C6Al1ClZE/export?format=csv";
 
-// group: "YM" | "YW" | "Combined" | "Stake"
-// endDate: optional "YYYY-MM-DD" for multi-day events
-const EVENTS = [
-  { date: "2026-04-21", time: "7:00 PM", endTime: "8:00 PM", title: "Suture Day", group: "YM", details: "", location: CHURCH, leadYouth: "David Mars", advisor: "" },
-  { date: "2026-04-28", time: "7:00 PM", endTime: "8:00 PM", title: "Spam Day / Cupcake Decorating", group: "Combined", details: "", location: CHURCH, leadYouth: "David Mars", advisor: "" },
-  { date: "2026-05-05", time: "7:00 PM", endTime: "8:00 PM", title: "Cinco De Mayo (Taco Tuesday)", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-05-12", time: "7:00 PM", endTime: "8:00 PM", title: "Pickle Ball", group: "Combined", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-05-19", time: "7:00 PM", endTime: "8:00 PM", title: "Cemetery Flag Placement", group: "YM", details: "", location: "TBD", leadYouth: "", advisor: "" },
-  { date: "2026-05-26", time: "7:00 PM", endTime: "8:00 PM", title: "Hobby Day", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-06-02", time: "7:00 PM", endTime: "8:00 PM", title: "Prep for Camp", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-06-08", time: "TBD", endTime: "", endDate: "2026-06-13", title: "Youth Camp", group: "Stake", details: "", location: "TBD", leadYouth: "", advisor: "" },
-  { date: "2026-06-16", time: "7:00 PM", endTime: "8:00 PM", title: "Airsoft", group: "YM", details: "", location: "TBD", leadYouth: "Daniel Sears", advisor: "" },
-  { date: "2026-06-23", time: "7:00 PM", endTime: "8:00 PM", title: "Camp Games", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-06-30", time: "TBD", endTime: "", title: "Go Ape", group: "YM", details: "", location: "Go Ape Treetop Adventure, Cuyahoga Valley", leadYouth: "", advisor: "" },
-  { date: "2026-07-08", time: "TBD", endTime: "", endDate: "2026-07-11", title: "Youth Conference", group: "Stake", details: "", location: "OSU, Columbus, OH", leadYouth: "", advisor: "" },
-  { date: "2026-07-14", time: "TBD", endTime: "", title: "Float the River", group: "Combined", details: "", location: "TBD", leadYouth: "", advisor: "" },
-  { date: "2026-07-21", time: "7:00 PM", endTime: "8:00 PM", title: "Dutch Oven Cooking (Peach Cobbler)", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-07-28", time: "7:00 PM", endTime: "8:00 PM", title: "Range Day / Ice Cream", group: "YM", details: "", location: "TBD", leadYouth: "Taylor Mars", advisor: "" },
-  { date: "2026-08-04", time: "7:00 PM", endTime: "8:00 PM", title: "Funny Cooking Video", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-08-11", time: "7:00 PM", endTime: "8:00 PM", title: "Iron Chef Competition", group: "Combined", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-  { date: "2026-08-18", time: "7:00 PM", endTime: "8:00 PM", title: "Service for the Noices", group: "YM", details: "Service project for Mars neighbor", location: "1943 Old Forge Rd, Brimfield, OH", leadYouth: "", advisor: "" },
-  { date: "2026-08-25", time: "7:00 PM", endTime: "8:00 PM", title: "Capture the Flag", group: "YM", details: "", location: CHURCH, leadYouth: "", advisor: "" },
-];
+function splitCSVLine(line) {
+  const cols = [];
+  let cur = "", inQuote = false;
+  for (const ch of line) {
+    if (ch === '"') { inQuote = !inQuote; }
+    else if (ch === ',' && !inQuote) { cols.push(cur.trim()); cur = ""; }
+    else { cur += ch; }
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
+function normalizeTime(t) {
+  if (!t) return "TBD";
+  return t.replace(/^(\d+:\d+):\d+(\s*[AP]M)$/i, "$1$2").trim() || "TBD";
+}
+
+function toISODate(s) {
+  s = (s || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const [m, d, y] = s.split("/");
+  if (!m || !d || !y) return s;
+  return `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+}
+
+function resolveGroup(raw, fallback) {
+  const g = (raw || "").trim().toLowerCase();
+  if (g === "combined") return "Combined";
+  if (g === "stake" || g === "stake youth activity") return "Stake";
+  return fallback;
+}
+
+function parseYMCSV(text) {
+  return text.trim().split("\n").slice(1).map(line => {
+    const [date, groupRaw, activity, , time, endTime, location, details, leadYouth, advisor] = splitCSVLine(line);
+    if (!date || !activity) return null;
+    return {
+      date: toISODate(date), title: activity.trim(),
+      group: resolveGroup(groupRaw, "YM"),
+      time: normalizeTime(time), endTime: normalizeTime(endTime),
+      location: (location || "").trim(), details: (details || "").trim(),
+      leadYouth: (leadYouth || "").trim(), advisor: (advisor || "").trim(),
+    };
+  }).filter(Boolean);
+}
+
+function parseYWCSV(text) {
+  return text.trim().split("\n").slice(1).map(line => {
+    const [date, title, groupRaw, time, endTime, location, details, leadYouth, advisor] = splitCSVLine(line);
+    if (!date || !title) return null;
+    return {
+      date: toISODate(date), title: title.trim(),
+      group: resolveGroup(groupRaw, "YW"),
+      time: normalizeTime(time), endTime: normalizeTime(endTime),
+      location: (location || "").trim(), details: (details || "").trim(),
+      leadYouth: (leadYouth || "").trim(), advisor: (advisor || "").trim(),
+    };
+  }).filter(Boolean);
+}
+
+async function fetchSheet(url, parser) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  if (text.trim().startsWith("<!")) throw new Error("Sheet is not publicly accessible");
+  return parser(text);
+}
 
 const GROUP_STYLES = {
   YM:       { accent: "#5d8fe8", light: "rgba(93,143,232,0.11)",  label: "Young Men"   },
@@ -124,28 +169,49 @@ function deduped(arr) {
 }
 
 export default function App() {
-  const [filter, setFilter] = useState("All");
+  const [events,   setEvents]   = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
+  const [filter,   setFilter]   = useState("All");
   const [expandedId, setExpandedId] = useState(null);
   const [pastOpen, setPastOpen] = useState(false);
 
+  useEffect(() => {
+    let dead = false;
+    Promise.allSettled([fetchSheet(YM_CSV, parseYMCSV), fetchSheet(YW_CSV, parseYWCSV)])
+      .then(results => {
+        if (dead) return;
+        const all = results.flatMap(r => r.status === "fulfilled" ? r.value : []);
+        const fails = results.filter(r => r.status === "rejected");
+        if (all.length === 0 && fails.length > 0) { setError(fails[0].reason.message); setLoading(false); return; }
+        const seen = new Set();
+        setEvents(all
+          .filter(e => { const k = `${e.date}|${e.title.toLowerCase()}`; if (seen.has(k)) return false; seen.add(k); return true; })
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+        );
+        setLoading(false);
+      });
+    return () => { dead = true; };
+  }, []);
+
   const filtered = useMemo(() =>
     deduped(
-      EVENTS
+      events
         .filter(e => isUpcoming(e.date))
         .filter(e => matchesFilter(e, filter))
         .sort((a, b) => new Date(a.date) - new Date(b.date))
     ),
-    [filter]
+    [events, filter]
   );
 
   const past = useMemo(() =>
     deduped(
-      EVENTS
+      events
         .filter(e => !isUpcoming(e.date))
         .filter(e => matchesFilter(e, filter))
         .sort((a, b) => new Date(b.date) - new Date(a.date))
     ),
-    [filter]
+    [events, filter]
   );
 
   const nextEvent = filtered[0];
@@ -502,6 +568,29 @@ export default function App() {
           border-top: 1px solid var(--border); margin-top: 28px;
         }
 
+        /* ─── SKELETON ─── */
+        .skeleton { padding: 20px 16px 0; display: flex; flex-direction: column; gap: 7px; }
+        .skel-card {
+          background: var(--surface); border-radius: 11px; height: 78px;
+          border: 1px solid var(--border); overflow: hidden;
+        }
+        .skel-inner {
+          height: 100%;
+          background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.6s infinite;
+        }
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        .err {
+          text-align: center; padding: 48px 24px;
+          font-family: 'Sora', sans-serif; font-size: 12px; color: #e07b6a;
+        }
+        .err small { display: block; margin-top: 6px; font-size: 11px; opacity: 0.6; }
+
         /* ─── ANIMATIONS ─── */
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(14px); }
@@ -522,6 +611,17 @@ export default function App() {
         </div>
       </div>
 
+      {/* Loading */}
+      {loading && (
+        <div className="skeleton">
+          {[0,1,2].map(i => <div key={i} className="skel-card"><div className="skel-inner" /></div>)}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && <div className="err">Could not load events.<small>{error}</small></div>}
+
+      {!loading && !error && <>
       {/* Next Up */}
       {nextEvent && (() => {
         const d = formatDate(nextEvent.date);
@@ -752,6 +852,8 @@ export default function App() {
           )}
         </div>
       )}
+
+      </>}
 
       <div className="footer">Hiram Ward Young Men &amp; Young Women · 2026</div>
     </div>
