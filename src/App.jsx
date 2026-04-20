@@ -72,10 +72,10 @@ async function fetchSheet(url, parser) {
 }
 
 const GROUP_STYLES = {
-  YM:       { accent: "#5d8fe8", light: "rgba(93,143,232,0.11)",  label: "Young Men"   },
-  YW:       { accent: "#d07ec5", light: "rgba(208,126,197,0.11)", label: "Young Women" },
-  Combined: { accent: "#c9a84c", light: "rgba(201,168,76,0.11)",  label: "Combined"    },
-  Stake:    { accent: "#e07b6a", light: "rgba(224,123,106,0.11)", label: "Stake"       },
+  YM:       { accent: "#1e4d8c", light: "#eaf0fb", label: "Young Men"   },
+  YW:       { accent: "#7a2466", light: "#f9edf6", label: "Young Women" },
+  Combined: { accent: "#1f6140", light: "#eaf5ee", label: "Combined"    },
+  Stake:    { accent: "#8b2232", light: "#f9edef", label: "Stake"       },
 };
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -168,6 +168,301 @@ function deduped(arr) {
   });
 }
 
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,700&family=Outfit:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: #ede9e0; -webkit-font-smoothing: antialiased; }
+
+  /* ── Header ── */
+  .hdr {
+    background: #1c2a18;
+    padding: 44px 24px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hdr::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
+  }
+  .hdr-eyebrow {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: #b8a96a; margin-bottom: 14px;
+    position: relative;
+  }
+  .hdr-title {
+    font-family: 'Fraunces', serif;
+    font-size: 62px; font-weight: 800;
+    color: #fff; line-height: 0.92;
+    letter-spacing: -1px; margin-bottom: 16px;
+    position: relative;
+  }
+  .hdr-rule {
+    display: flex; align-items: center;
+    justify-content: center; gap: 10px;
+    margin-bottom: 14px; position: relative;
+  }
+  .hdr-rule-line { width: 28px; height: 1px; background: rgba(184,169,106,0.5); }
+  .hdr-rule-diamond {
+    width: 5px; height: 5px;
+    background: #b8a96a; transform: rotate(45deg);
+  }
+  .hdr-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    position: relative;
+  }
+
+  /* ── Next Up ── */
+  .next-wrap { padding: 20px 16px 0; }
+  .next-card {
+    background: #1e3a5f;
+    border-radius: 12px;
+    padding: 18px 20px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .next-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .next-label {
+    position: absolute; top: 14px; right: 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+  .next-meta {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    text-align: center; margin-bottom: 10px;
+  }
+  .next-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; line-height: 1.15;
+    text-align: center; margin-bottom: 12px;
+  }
+  .next-pill-wrap { display: flex; justify-content: center; }
+  .next-pill {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.12);
+    padding: 4px 14px; border-radius: 999px;
+  }
+
+  /* ── Filters ── */
+  .filters {
+    padding: 18px 16px 0;
+    display: flex; gap: 8px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .ftab {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 7px 18px; border-radius: 999px;
+    border: 1.5px solid #c5bba8;
+    background: transparent;
+    color: #5c5749; cursor: pointer;
+    white-space: nowrap; transition: all 0.14s;
+  }
+  .ftab:hover { border-color: #9a9284; color: #1a1710; }
+  .ftab.on-all   { background: #1a1710; border-color: #1a1710; color: #fff; }
+  .ftab.on-ym    { background: #1e4d8c; border-color: #1e4d8c; color: #fff; }
+  .ftab.on-yw    { background: #7a2466; border-color: #7a2466; color: #fff; }
+  .ftab.on-stake { background: #8b2232; border-color: #8b2232; color: #fff; }
+
+  /* ── Month headers ── */
+  .month-section { padding: 24px 16px 0; }
+  .month-name {
+    font-family: 'Fraunces', serif;
+    font-size: 36px; font-weight: 800;
+    color: #1a1710; line-height: 1;
+  }
+  .month-year {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 500;
+    color: #9a9284; margin-top: 2px; margin-bottom: 12px;
+  }
+
+  /* ── Cards ── */
+  .cards-stack { display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1.5px solid #e8e3d8;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.08); }
+  .card.open  { box-shadow: 0 4px 18px rgba(0,0,0,0.1); }
+  .card.past  { opacity: 0.55; }
+  .card.past:hover { opacity: 0.82; }
+
+  .card-bar { width: 4px; flex-shrink: 0; }
+  .card-inner { flex: 1; min-width: 0; }
+
+  .card-top {
+    display: flex; align-items: center;
+    gap: 12px; padding: 13px 14px 13px 12px;
+  }
+
+  .datebox {
+    text-align: center; min-width: 46px; flex-shrink: 0;
+    padding: 4px 2px;
+  }
+  .dm {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: #9a9284;
+  }
+  .dd {
+    font-family: 'Fraunces', serif;
+    font-size: 34px; font-weight: 800;
+    font-style: italic; line-height: 1; margin: 1px 0;
+  }
+  .dd-range {
+    font-family: 'Fraunces', serif;
+    font-size: 19px; font-weight: 800;
+    font-style: italic; line-height: 1.15; margin: 2px 0;
+  }
+  .dw {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px; color: #9a9284; letter-spacing: 0.3px;
+  }
+
+  .cbody { flex: 1; min-width: 0; }
+  .ctitle {
+    font-family: 'Fraunces', serif;
+    font-size: 16px; font-weight: 700;
+    color: #1a1710; line-height: 1.2; margin-bottom: 4px;
+  }
+  .cmeta {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Outfit', sans-serif; font-size: 12px;
+    color: #5c5749; flex-wrap: wrap; margin-bottom: 6px;
+  }
+  .cmeta-time { font-weight: 600; color: #1a1710; }
+  .cmeta-sep  { color: #c5bba8; }
+  .cmeta-loc  {
+    color: #5c5749; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 150px;
+  }
+  .tbd {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+    color: #9a9284; background: #f0ece4;
+    border-radius: 3px; padding: 1px 5px;
+  }
+  .gpill {
+    display: inline-flex; align-items: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 2px 10px; border-radius: 999px;
+  }
+  .chev {
+    font-size: 13px; color: #9a9284;
+    flex-shrink: 0; margin-left: 4px;
+    transition: transform 0.2s; line-height: 1;
+  }
+  .chev.up { transform: rotate(180deg); }
+
+  /* ── Detail panel ── */
+  .card-detail {
+    border-top: 1px solid #f0ece4;
+    padding: 13px 14px 15px 12px;
+    background: #f5f2ec;
+  }
+  .drow {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-bottom: 8px;
+    font-family: 'Outfit', sans-serif; font-size: 13px; color: #5c5749;
+    line-height: 1.5;
+  }
+  .drow:last-child { margin-bottom: 0; }
+  .dlabel { font-weight: 600; color: #1a1710; min-width: 80px; flex-shrink: 0; font-size: 12px; }
+  .dlink { color: #1e4d8c; text-decoration: none; }
+  .dlink:hover { text-decoration: underline; }
+
+  .cal-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 7px; width: 100%; margin-top: 13px; padding: 10px 16px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.4px;
+    border: none; border-radius: 7px; cursor: pointer;
+    text-decoration: none; transition: opacity 0.15s;
+  }
+  .cal-btn:hover { opacity: 0.86; }
+
+  /* ── Past toggle ── */
+  .past-toggle {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 16px 0; background: none; border: none; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: #9a9284; transition: color 0.15s;
+  }
+  .past-toggle:hover { color: #5c5749; }
+  .past-toggle-line { flex: 1; height: 1px; background: #d8d2c4; }
+  .past-toggle-chev { font-size: 12px; transition: transform 0.2s; }
+  .past-toggle-chev.up { transform: rotate(180deg); }
+
+  /* ── Skeleton ── */
+  .skeleton { padding: 20px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+  .skel-card {
+    background: #fff; border-radius: 10px; height: 78px;
+    border: 1.5px solid #e8e3d8; overflow: hidden;
+  }
+  .skel-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #f5f2ec 25%, #eae6de 50%, #f5f2ec 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .empty {
+    text-align: center; padding: 52px 24px;
+    font-family: 'Outfit', sans-serif; font-size: 13px; color: #9a9284;
+  }
+  .err {
+    text-align: center; padding: 48px 24px;
+    font-family: 'Outfit', sans-serif; font-size: 12px; color: #8b2232;
+  }
+  .err small { display: block; margin-top: 6px; font-size: 11px; opacity: 0.6; }
+
+  .footer {
+    text-align: center; padding: 32px 24px 48px;
+    font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase; color: #9a9284;
+  }
+`;
+
 export default function App() {
   const [events,   setEvents]   = useState([]);
   const [loading,  setLoading]  = useState(true);
@@ -217,398 +512,19 @@ export default function App() {
   const nextEvent = filtered[0];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0c1019" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Sora:wght@300;400;500;600&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-          --bg:           #0c1019;
-          --surface:      #131b28;
-          --surface-2:    #192235;
-          --border:       rgba(255,255,255,0.07);
-          --border-soft:  rgba(255,255,255,0.04);
-          --gold:         #c9a84c;
-          --gold-dim:     rgba(201,168,76,0.3);
-          --cream:        #f0e6d2;
-          --cream-dim:    rgba(240,230,210,0.55);
-          --cream-faint:  rgba(240,230,210,0.22);
-        }
-
-        body {
-          background: var(--bg);
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* Grain texture */
-        body::after {
-          content: '';
-          position: fixed; inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-          opacity: 0.032;
-          pointer-events: none;
-          z-index: 9999;
-        }
-
-        /* ─── HEADER ─── */
-        .header {
-          padding: 52px 24px 44px;
-          position: relative;
-          overflow: hidden;
-        }
-        .header::before {
-          content: '';
-          position: absolute; inset: 0;
-          background:
-            radial-gradient(ellipse 65% 50% at 50% -5%, rgba(201,168,76,0.08) 0%, transparent 70%),
-            radial-gradient(ellipse 35% 25% at 10% 90%, rgba(93,143,232,0.05) 0%, transparent 60%);
-          pointer-events: none;
-        }
-        .hdr-rule {
-          display: flex; align-items: center; gap: 12px;
-          margin-bottom: 18px;
-          position: relative; z-index: 1;
-        }
-        .hdr-rule-line { height: 1px; background: var(--gold-dim); width: 28px; flex-shrink: 0; }
-        .hdr-eyebrow {
-          font-family: 'Sora', sans-serif;
-          font-size: 9px; font-weight: 600;
-          letter-spacing: 4px; text-transform: uppercase;
-          color: var(--gold);
-        }
-        .hdr-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 66px; font-weight: 700;
-          color: var(--cream); line-height: 0.87;
-          letter-spacing: -2px;
-          margin-bottom: 24px;
-          position: relative; z-index: 1;
-        }
-        .hdr-title em {
-          font-style: italic; font-weight: 400;
-          color: var(--cream-dim);
-        }
-        .hdr-bottom {
-          display: flex; align-items: center; gap: 14px;
-          position: relative; z-index: 1;
-        }
-        .hdr-year {
-          font-family: 'Sora', sans-serif;
-          font-size: 10px; font-weight: 400;
-          letter-spacing: 3px; color: var(--cream-faint);
-          white-space: nowrap;
-        }
-        .hdr-bottom-line { flex: 1; height: 1px; background: var(--border); }
-
-        /* ─── FEATURE (Next Up) ─── */
-        .feature {
-          margin: 20px 16px 0;
-          border-radius: 14px;
-          padding: 26px 22px;
-          position: relative;
-          overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.07);
-          animation: fadeUp 0.5s 0.08s ease both;
-        }
-        .feature::before {
-          content: '';
-          position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 55%);
-          pointer-events: none;
-        }
-        .feature-ghost {
-          position: absolute;
-          right: -6px; top: 50%; transform: translateY(-50%);
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 148px; font-weight: 700;
-          line-height: 1; opacity: 0.08;
-          color: #fff;
-          pointer-events: none; user-select: none;
-          letter-spacing: -6px;
-        }
-        .feature-top {
-          display: flex; align-items: center; gap: 10px;
-          margin-bottom: 14px;
-        }
-        .feature-label {
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 3px; text-transform: uppercase;
-          color: rgba(255,255,255,0.35);
-        }
-        .feature-countdown {
-          font-family: 'Sora', sans-serif;
-          font-size: 9px; font-weight: 600;
-          letter-spacing: 1.5px; text-transform: uppercase;
-          color: rgba(255,255,255,0.85);
-          background: rgba(255,255,255,0.1);
-          padding: 3px 10px; border-radius: 20px;
-        }
-        .feature-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 28px; font-weight: 700;
-          color: #fff; line-height: 1.15;
-          margin-bottom: 8px;
-        }
-        .feature-meta {
-          font-family: 'Sora', sans-serif;
-          font-size: 11px; font-weight: 400;
-          color: rgba(255,255,255,0.48);
-        }
-
-        /* ─── FILTERS ─── */
-        .filter-row {
-          padding: 20px 16px 0;
-          display: flex; gap: 6px;
-          overflow-x: auto; scrollbar-width: none;
-          animation: fadeUp 0.4s 0.12s ease both;
-        }
-        .filter-row::-webkit-scrollbar { display: none; }
-        .fbtn {
-          font-family: 'Sora', sans-serif;
-          font-size: 11px; font-weight: 500;
-          padding: 6px 15px; border-radius: 6px;
-          border: 1px solid var(--border);
-          background: transparent;
-          color: var(--cream-faint); cursor: pointer;
-          white-space: nowrap; transition: all 0.14s;
-          letter-spacing: 0.3px;
-        }
-        .fbtn:hover { color: var(--cream-dim); border-color: rgba(255,255,255,0.14); }
-        .fbtn.all-on   { background: var(--surface-2); border-color: rgba(255,255,255,0.15); color: var(--cream); }
-        .fbtn.ym-on    { border-color: #5d8fe8; color: #5d8fe8; background: rgba(93,143,232,0.09); }
-        .fbtn.yw-on    { border-color: #d07ec5; color: #d07ec5; background: rgba(208,126,197,0.09); }
-        .fbtn.stake-on { border-color: #e07b6a; color: #e07b6a; background: rgba(224,123,106,0.09); }
-
-        /* ─── MONTH SECTIONS ─── */
-        .month-section { padding: 20px 16px 0; }
-        .month-header {
-          display: flex; align-items: center; gap: 12px;
-          margin-bottom: 10px;
-        }
-        .month-label {
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 3.5px; text-transform: uppercase;
-          color: var(--gold); white-space: nowrap;
-        }
-        .month-rule { flex: 1; height: 1px; background: var(--gold-dim); }
-
-        /* ─── CARDS ─── */
-        .cards-stack { display: flex; flex-direction: column; gap: 7px; }
-
-        .card {
-          background: var(--surface);
-          border-radius: 11px;
-          border: 1px solid var(--border);
-          overflow: hidden;
-          cursor: pointer;
-          display: flex;
-          transition: border-color 0.18s, box-shadow 0.18s, transform 0.14s;
-          animation: fadeUp 0.4s ease both;
-        }
-        .card:hover {
-          transform: translateY(-1px);
-          border-color: rgba(255,255,255,0.13);
-          box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        .card.open { border-color: rgba(255,255,255,0.14); }
-        .card.past { opacity: 0.38; }
-        .card.past:hover { opacity: 0.65; transform: none; box-shadow: none; }
-
-        .card-bar { width: 3px; flex-shrink: 0; }
-        .card-inner { flex: 1; min-width: 0; }
-
-        .card-top {
-          display: flex; align-items: center;
-          gap: 13px; padding: 14px 13px 14px 14px;
-          position: relative;
-        }
-
-        /* Ghost day number watermark */
-        .card-ghost {
-          position: absolute;
-          right: 36px; top: 50%; transform: translateY(-50%);
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 80px; font-weight: 700;
-          line-height: 1; opacity: 0.055;
-          color: #fff;
-          pointer-events: none; user-select: none;
-          letter-spacing: -3px;
-        }
-
-        .datebox {
-          text-align: center; min-width: 38px;
-          flex-shrink: 0;
-        }
-        .dm {
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 1.5px; text-transform: uppercase;
-          color: var(--cream-faint); margin-bottom: 1px;
-        }
-        .dd {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 38px; font-weight: 700;
-          line-height: 0.85; color: var(--cream);
-        }
-        .dd-range {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 18px; font-weight: 700;
-          line-height: 1.15; color: var(--cream);
-        }
-        .dw {
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; color: var(--cream-faint);
-          margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        .vdivider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
-
-        .cbody { flex: 1; min-width: 0; }
-        .ctitle {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 16px; font-weight: 600;
-          color: var(--cream); line-height: 1.25;
-          margin-bottom: 4px;
-        }
-        .cmeta {
-          display: flex; align-items: center; gap: 5px;
-          font-family: 'Sora', sans-serif; font-size: 11px;
-          color: var(--cream-dim); flex-wrap: wrap;
-          margin-bottom: 6px;
-        }
-        .cmeta-time { font-weight: 500; }
-        .cmeta-sep { color: var(--cream-faint); }
-        .cmeta-loc {
-          color: var(--cream-dim);
-          white-space: nowrap; overflow: hidden;
-          text-overflow: ellipsis; max-width: 140px;
-        }
-        .tbd {
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 1px; text-transform: uppercase;
-          color: var(--cream-faint);
-        }
-        .group-pill {
-          display: inline-flex; align-items: center;
-          font-family: 'Sora', sans-serif;
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 1.2px; text-transform: uppercase;
-          padding: 2px 8px; border-radius: 4px;
-        }
-
-        .chev {
-          font-size: 13px; color: var(--cream-faint);
-          flex-shrink: 0; margin-left: 2px;
-          transition: transform 0.2s; line-height: 1;
-        }
-        .chev.up { transform: rotate(180deg); }
-
-        /* ─── DETAIL PANEL ─── */
-        .card-detail {
-          border-top: 1px solid var(--border-soft);
-          padding: 13px 13px 15px 14px;
-          background: var(--surface-2);
-        }
-        .drow {
-          display: flex; gap: 12px; align-items: flex-start;
-          margin-bottom: 9px;
-          font-family: 'Sora', sans-serif; font-size: 12px;
-          color: var(--cream-dim); line-height: 1.5;
-        }
-        .drow:last-child { margin-bottom: 0; }
-        .dlabel {
-          font-size: 8px; font-weight: 600;
-          letter-spacing: 1.5px; text-transform: uppercase;
-          color: var(--gold); min-width: 72px; flex-shrink: 0; padding-top: 3px;
-        }
-        .dlink { color: #6ba3e8; text-decoration: none; }
-        .dlink:hover { text-decoration: underline; }
-
-        .cal-btn {
-          display: flex; align-items: center; justify-content: center;
-          gap: 7px; width: 100%; margin-top: 13px; padding: 10px 16px;
-          color: #fff;
-          font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 600;
-          letter-spacing: 0.5px;
-          border: none; border-radius: 8px; cursor: pointer;
-          text-decoration: none; transition: opacity 0.14s, transform 0.1s;
-        }
-        .cal-btn:hover { opacity: 0.84; transform: translateY(-1px); }
-
-        /* ─── PAST EVENTS ─── */
-        .past-toggle {
-          display: flex; align-items: center; gap: 10px; width: 100%;
-          padding: 16px 0; background: none; border: none; cursor: pointer;
-          font-family: 'Sora', sans-serif; font-size: 9px; font-weight: 500;
-          letter-spacing: 2.5px; text-transform: uppercase;
-          color: var(--cream-faint); transition: color 0.15s;
-        }
-        .past-toggle:hover { color: var(--cream-dim); }
-        .past-toggle-line { flex: 1; height: 1px; background: var(--border); }
-        .past-toggle-chev { font-size: 11px; transition: transform 0.2s; }
-        .past-toggle-chev.up { transform: rotate(180deg); }
-
-        .empty {
-          text-align: center; padding: 52px 24px;
-          font-family: 'Sora', sans-serif; font-size: 13px;
-          color: var(--cream-faint);
-        }
-
-        .footer {
-          text-align: center; padding: 36px 24px 48px;
-          font-family: 'Sora', sans-serif;
-          font-size: 9px; font-weight: 500;
-          letter-spacing: 2.5px; text-transform: uppercase;
-          color: var(--cream-faint);
-          border-top: 1px solid var(--border); margin-top: 28px;
-        }
-
-        /* ─── SKELETON ─── */
-        .skeleton { padding: 20px 16px 0; display: flex; flex-direction: column; gap: 7px; }
-        .skel-card {
-          background: var(--surface); border-radius: 11px; height: 78px;
-          border: 1px solid var(--border); overflow: hidden;
-        }
-        .skel-inner {
-          height: 100%;
-          background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.6s infinite;
-        }
-        @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-
-        .err {
-          text-align: center; padding: 48px 24px;
-          font-family: 'Sora', sans-serif; font-size: 12px; color: #e07b6a;
-        }
-        .err small { display: block; margin-top: 6px; font-size: 11px; opacity: 0.6; }
-
-        /* ─── ANIMATIONS ─── */
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+    <div style={{ minHeight: "100vh", background: "#ede9e0" }}>
+      <style>{CSS}</style>
 
       {/* Header */}
-      <div className="header">
+      <div className="hdr">
+        <div className="hdr-eyebrow">Hiram Ward</div>
+        <div className="hdr-title">Youth<br/>Activities</div>
         <div className="hdr-rule">
           <div className="hdr-rule-line" />
-          <div className="hdr-eyebrow">Hiram Ward</div>
+          <div className="hdr-rule-diamond" />
+          <div className="hdr-rule-line" />
         </div>
-        <div className="hdr-title">Youth<br/><em>Activities</em></div>
-        <div className="hdr-bottom">
-          <div className="hdr-year">2026 Calendar</div>
-          <div className="hdr-bottom-line" />
-        </div>
+        <div className="hdr-sub">2026 Calendar</div>
       </div>
 
       {/* Loading */}
@@ -622,155 +538,174 @@ export default function App() {
       {error && <div className="err">Could not load events.<small>{error}</small></div>}
 
       {!loading && !error && <>
-      {/* Next Up */}
-      {nextEvent && (() => {
-        const d = formatDate(nextEvent.date);
-        const gs = GROUP_STYLES[nextEvent.group];
-        return (
-          <div
-            className="feature"
-            style={{
-              background: `linear-gradient(135deg, ${gs.accent}20 0%, ${gs.accent}0c 55%, rgba(255,255,255,0.015) 100%)`,
-              borderColor: `${gs.accent}28`,
-            }}
-          >
-            <div className="feature-ghost">{d.day}</div>
-            <div className="feature-top">
-              <span className="feature-label">Next Up</span>
-              <span className="feature-countdown">{getCountdown(nextEvent.date)}</span>
-            </div>
-            <div className="feature-title">{nextEvent.title}</div>
-            <div className="feature-meta">
-              {d.weekday}, {d.month} {d.day}
-              {nextEvent.time !== "TBD" && ` · ${nextEvent.time}`}
-              {` · ${gs.label}`}
-            </div>
-          </div>
-        );
-      })()}
 
-      {/* Filters */}
-      <div className="filter-row">
-        {FILTERS.map(f => {
-          const activeClass = filter === f
-            ? f === "YM" ? "fbtn ym-on"
-            : f === "YW" ? "fbtn yw-on"
-            : f === "Stake" ? "fbtn stake-on"
-            : "fbtn all-on"
-            : "fbtn";
+        {/* Next Up */}
+        {nextEvent && (() => {
+          const d = formatDate(nextEvent.date);
+          const gs = GROUP_STYLES[nextEvent.group];
           return (
-            <button key={f} className={activeClass} onClick={() => setFilter(f)}>
-              {f === "YM" ? "Young Men" : f === "YW" ? "Young Women" : f}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Event List */}
-      <div>
-        {filtered.length === 0 ? (
-          <div className="empty">No upcoming events in this category.</div>
-        ) : (() => {
-          const grouped = filtered.reduce((acc, ev) => {
-            const d = new Date(ev.date + "T12:00:00");
-            const key = `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
-            (acc[key] = acc[key] || []).push(ev);
-            return acc;
-          }, {});
-
-          return Object.entries(grouped).map(([month, events]) => (
-            <div key={month} className="month-section">
-              <div className="month-header">
-                <span className="month-label">{month}</span>
-                <span className="month-rule" />
+            <div className="next-wrap">
+              <div className="next-card">
+                <span className="next-label">Next Up</span>
+                <div className="next-meta">
+                  {d.weekday} · {d.month} {d.day}
+                  {nextEvent.time !== "TBD" && ` · ${nextEvent.time}`}
+                </div>
+                <div className="next-title">{nextEvent.title}</div>
+                <div className="next-pill-wrap">
+                  <span className="next-pill">{gs.label}</span>
+                </div>
               </div>
-              <div className="cards-stack">
-                {events.map((ev, idx) => {
-                  const i = filtered.indexOf(ev);
+            </div>
+          );
+        })()}
+
+        {/* Filters */}
+        <div className="filters">
+          {FILTERS.map(f => {
+            const cls = filter !== f ? "ftab"
+              : f === "YM" ? "ftab on-ym"
+              : f === "YW" ? "ftab on-yw"
+              : f === "Stake" ? "ftab on-stake"
+              : "ftab on-all";
+            return (
+              <button key={f} className={cls} onClick={() => setFilter(f)}>
+                {f === "YM" ? "Young Men" : f === "YW" ? "Young Women" : f}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Event List */}
+        <div>
+          {filtered.length === 0 ? (
+            <div className="empty">No upcoming events in this category.</div>
+          ) : (() => {
+            const grouped = filtered.reduce((acc, ev) => {
+              const d = new Date(ev.date + "T12:00:00");
+              const mKey = MONTHS_FULL[d.getMonth()];
+              const yKey = d.getFullYear();
+              const key = `${mKey}|||${yKey}`;
+              (acc[key] = acc[key] || { month: mKey, year: yKey, events: [] }).events.push(ev);
+              return acc;
+            }, {});
+
+            return Object.values(grouped).map(({ month, year, events: evts }) => (
+              <div key={`${month}${year}`} className="month-section">
+                <div className="month-name">{month}</div>
+                <div className="month-year">{year}</div>
+                <div className="cards-stack">
+                  {evts.map((ev) => {
+                    const i = filtered.indexOf(ev);
+                    const d = formatDate(ev.date);
+                    const gs = GROUP_STYLES[ev.group];
+                    const isOpen = expandedId === i;
+                    const isTBDTime = ev.time === "TBD";
+                    const isTBDLoc = !ev.location || ev.location === "TBD";
+                    return (
+                      <div
+                        key={i}
+                        className={`card${isOpen ? " open" : ""}`}
+                        style={isOpen ? { borderColor: gs.accent } : {}}
+                        onClick={() => setExpandedId(isOpen ? null : i)}
+                      >
+                        <div className="card-bar" style={{ background: gs.accent }} />
+                        <div className="card-inner">
+                          <div className="card-top">
+                            <div className="datebox">
+                              <div className="dm">{d.month}</div>
+                              {ev.endDate
+                                ? <div className="dd-range" style={{ color: gs.accent }}>{d.day}–{formatDate(ev.endDate).day}</div>
+                                : <div className="dd" style={{ color: gs.accent }}>{d.day}</div>
+                              }
+                              <div className="dw">{d.weekday}</div>
+                            </div>
+                            <div className="cbody">
+                              <div className="ctitle">{ev.title}</div>
+                              <div className="cmeta">
+                                <span className="cmeta-time">{isTBDTime ? <span className="tbd">TIME TBD</span> : ev.time}</span>
+                                <span className="cmeta-sep">·</span>
+                                <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">LOC TBD</span> : ev.location.split(",")[0]}</span>
+                              </div>
+                              <span className="gpill" style={{ background: gs.light, color: gs.accent }}>{gs.label}</span>
+                            </div>
+                            <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
+                          </div>
+                          {isOpen && (
+                            <div className="card-detail">
+                              {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
+                              {ev.endDate && <div className="drow"><span className="dlabel">Dates</span><span>{formatDateRange(ev.date, ev.endDate)}</span></div>}
+                              <div className="drow">
+                                <span className="dlabel">Time</span>
+                                {isTBDTime ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}
+                              </div>
+                              <div className="drow">
+                                <span className="dlabel">Location</span>
+                                {isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}
+                              </div>
+                              {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
+                              {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
+                              <a className="cal-btn" href={buildCalendarUrl(ev)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ background: gs.accent }}>
+                                📅 Add to Calendar
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+
+        {/* Past Events */}
+        {past.length > 0 && (
+          <div style={{ padding: "4px 16px 0" }}>
+            <button className="past-toggle" onClick={() => setPastOpen(o => !o)}>
+              <span className="past-toggle-line" />
+              <span>Earlier this year ({past.length})</span>
+              <span className={`past-toggle-chev${pastOpen ? " up" : ""}`}>⌄</span>
+              <span className="past-toggle-line" />
+            </button>
+            {pastOpen && (
+              <div className="cards-stack" style={{ marginTop: 4, marginBottom: 8 }}>
+                {past.map((ev, i) => {
+                  const pid = `past-${i}`;
                   const d = formatDate(ev.date);
                   const gs = GROUP_STYLES[ev.group];
-                  const isOpen = expandedId === i;
+                  const isOpen = expandedId === pid;
                   const isTBDTime = ev.time === "TBD";
                   const isTBDLoc = !ev.location || ev.location === "TBD";
-                  const calUrl = buildCalendarUrl(ev);
-
                   return (
-                    <div
-                      key={i}
-                      className={`card${isOpen ? " open" : ""}`}
-                      style={{
-                        boxShadow: isOpen ? `0 0 0 1px ${gs.accent}30, 0 8px 28px rgba(0,0,0,0.35)` : undefined,
-                        animationDelay: `${idx * 55}ms`,
-                      }}
-                      onClick={() => setExpandedId(isOpen ? null : i)}
-                    >
+                    <div key={pid} className={`card past${isOpen ? " open" : ""}`} style={isOpen ? { borderColor: gs.accent } : {}} onClick={() => setExpandedId(isOpen ? null : pid)}>
                       <div className="card-bar" style={{ background: gs.accent }} />
                       <div className="card-inner">
                         <div className="card-top">
-                          <div className="card-ghost">{d.day}</div>
                           <div className="datebox">
-                            <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
-                            {ev.endDate
-                              ? <div className="dd-range">{d.day}–{formatDate(ev.endDate).day}</div>
-                              : <div className="dd">{d.day}</div>
-                            }
+                            <div className="dm">{d.month}</div>
+                            <div className="dd" style={{ color: gs.accent }}>{d.day}</div>
                             <div className="dw">{d.weekday}</div>
                           </div>
-                          <div className="vdivider" />
                           <div className="cbody">
                             <div className="ctitle">{ev.title}</div>
                             <div className="cmeta">
-                              <span className="cmeta-time" style={{ color: isTBDTime ? undefined : gs.accent }}>
-                                {isTBDTime ? <span className="tbd">Time TBD</span> : ev.time}
-                              </span>
+                              <span className="cmeta-time">{isTBDTime ? <span className="tbd">TIME TBD</span> : ev.time}</span>
                               <span className="cmeta-sep">·</span>
-                              <span className="cmeta-loc">
-                                {isTBDLoc ? <span className="tbd">Loc TBD</span> : ev.location.split(",")[0]}
-                              </span>
+                              <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">LOC TBD</span> : ev.location.split(",")[0]}</span>
                             </div>
-                            <span className="group-pill" style={{ background: gs.light, color: gs.accent }}>
-                              {gs.label}
-                            </span>
+                            <span className="gpill" style={{ background: gs.light, color: gs.accent }}>{gs.label}</span>
                           </div>
                           <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
                         </div>
-
                         {isOpen && (
                           <div className="card-detail">
-                            {ev.details && (
-                              <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>
-                            )}
-                            {ev.endDate && (
-                              <div className="drow">
-                                <span className="dlabel">Dates</span>
-                                <span>{formatDateRange(ev.date, ev.endDate)}</span>
-                              </div>
-                            )}
-                            <div className="drow">
-                              <span className="dlabel">Time</span>
-                              {isTBDTime
-                                ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span>
-                                : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>
-                              }
-                            </div>
-                            <div className="drow">
-                              <span className="dlabel">Location</span>
-                              {isTBDLoc
-                                ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span>
-                                : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>
-                              }
-                            </div>
+                            {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
+                            <div className="drow"><span className="dlabel">Time</span>{isTBDTime ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}</div>
+                            <div className="drow"><span className="dlabel">Location</span>{isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}</div>
                             {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
                             {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
-                            <a
-                              className="cal-btn"
-                              href={calUrl}
-                              target="_blank" rel="noopener noreferrer"
-                              onClick={e => e.stopPropagation()}
-                              style={{ background: gs.accent }}
-                            >
-                              📅 Add to Calendar
-                            </a>
                           </div>
                         )}
                       </div>
@@ -778,80 +713,9 @@ export default function App() {
                   );
                 })}
               </div>
-            </div>
-          ));
-        })()}
-      </div>
-
-      {/* Past Events */}
-      {past.length > 0 && (
-        <div style={{ padding: "4px 16px 0" }}>
-          <button className="past-toggle" onClick={() => setPastOpen(o => !o)}>
-            <span className="past-toggle-line" />
-            <span>Earlier this year ({past.length})</span>
-            <span className={`past-toggle-chev${pastOpen ? " up" : ""}`}>⌄</span>
-            <span className="past-toggle-line" />
-          </button>
-          {pastOpen && (
-            <div className="cards-stack" style={{ marginTop: 4, marginBottom: 8 }}>
-              {past.map((ev, i) => {
-                const pid = `past-${i}`;
-                const d = formatDate(ev.date);
-                const gs = GROUP_STYLES[ev.group];
-                const isOpen = expandedId === pid;
-                const isTBDTime = ev.time === "TBD";
-                const isTBDLoc = !ev.location || ev.location === "TBD";
-                return (
-                  <div
-                    key={pid}
-                    className={`card past${isOpen ? " open" : ""}`}
-                    style={{ animationDelay: `${i * 40}ms` }}
-                    onClick={() => setExpandedId(isOpen ? null : pid)}
-                  >
-                    <div className="card-bar" style={{ background: gs.accent }} />
-                    <div className="card-inner">
-                      <div className="card-top">
-                        <div className="card-ghost">{d.day}</div>
-                        <div className="datebox">
-                          <div className="dm" style={{ color: gs.accent }}>{d.month}</div>
-                          <div className="dd">{d.day}</div>
-                          <div className="dw">{d.weekday}</div>
-                        </div>
-                        <div className="vdivider" />
-                        <div className="cbody">
-                          <div className="ctitle">{ev.title}</div>
-                          <div className="cmeta">
-                            <span className="cmeta-time">{isTBDTime ? <span className="tbd">Time TBD</span> : ev.time}</span>
-                            <span className="cmeta-sep">·</span>
-                            <span className="cmeta-loc">{isTBDLoc ? <span className="tbd">Loc TBD</span> : ev.location.split(",")[0]}</span>
-                          </div>
-                          <span className="group-pill" style={{ background: gs.light, color: gs.accent }}>{gs.label}</span>
-                        </div>
-                        <div className={`chev${isOpen ? " up" : ""}`}>⌄</div>
-                      </div>
-                      {isOpen && (
-                        <div className="card-detail">
-                          {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
-                          <div className="drow">
-                            <span className="dlabel">Time</span>
-                            {isTBDTime ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}
-                          </div>
-                          <div className="drow">
-                            <span className="dlabel">Location</span>
-                            {isTBDLoc ? <span style={{ color: "var(--cream-faint)", fontStyle: "italic" }}>To be announced</span> : <a className="dlink" href={`https://maps.google.com/?q=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{ev.location} ↗</a>}
-                          </div>
-                          {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
-                          {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
       </>}
 
