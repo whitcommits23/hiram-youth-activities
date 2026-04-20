@@ -358,7 +358,7 @@ export default function App() {
                   {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
                   {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
 
-                  <
+                  <a
                     className="cal-btn"
                     href={calUrl}
                     target="_blank"
