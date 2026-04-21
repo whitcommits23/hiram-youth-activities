@@ -649,6 +649,8 @@ export default function App() {
                                 <span className="dlabel">Location</span>
                                 {isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.location}</span>}
                               </div>
+                              {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
+                              {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
                               {!isTBDLoc && (
                                 <>
                                   <iframe
@@ -661,8 +663,6 @@ export default function App() {
                                   />
                                 </>
                               )}
-                              {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
-                              {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
                               {!isTBDLoc && (
                                 <a className="cal-btn" href={getMapsUrl(ev.location)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ background: gs.accent }}>
                                   📍 Get Directions
@@ -727,6 +727,8 @@ export default function App() {
                             {ev.details && <div className="drow"><span className="dlabel">Details</span><span>{ev.details}</span></div>}
                             <div className="drow"><span className="dlabel">Time</span>{isTBDTime ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.time}{ev.endTime ? ` – ${ev.endTime}` : ""}</span>}</div>
                             <div className="drow"><span className="dlabel">Location</span>{isTBDLoc ? <span style={{ color: "#9a9284", fontStyle: "italic" }}>To be announced</span> : <span>{ev.location}</span>}</div>
+                            {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
+                            {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
                             {!isTBDLoc && (
                               <>
                                 <iframe
@@ -742,8 +744,6 @@ export default function App() {
                                 </a>
                               </>
                             )}
-                            {ev.leadYouth && <div className="drow"><span className="dlabel">Lead Youth</span><span>{ev.leadYouth}</span></div>}
-                            {ev.advisor && <div className="drow"><span className="dlabel">Advisor</span><span>{ev.advisor}</span></div>}
                           </div>
                         )}
                       </div>
